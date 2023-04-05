@@ -2,11 +2,11 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "[![Actions Status](https://github.com/OksanaS13/frontend-project-11/workflows/hexlet-check/badge.svg)](https://github.com/OksanaS13/frontend-project-11/actions)",
-  "main": "index.js",
-  "type": "module",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OksanaS13/frontend-project-11.git"
@@ -16,5 +16,27 @@
   "bugs": {
     "url": "https://github.com/OksanaS13/frontend-project-11/issues"
   },
-  "homepage": "https://github.com/OksanaS13/frontend-project-11#readme"
+  "homepage": "https://github.com/OksanaS13/frontend-project-11#readme",
+  "devDependencies": {
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "autoprefixer": "^10.4.14",
+    "babel-loader": "^9.1.2",
+    "css-loader": "^6.7.3",
+    "eslint": "^8.37.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "html-webpack-plugin": "^5.5.0",
+    "postcss-loader": "^7.2.4",
+    "sass": "^1.60.0",
+    "sass-loader": "^13.2.2",
+    "style-loader": "^3.3.2",
+    "webpack": "^5.77.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.13.2"
+  },
+  "dependencies": {
+    "bootstrap": "^5.2.3",
+    "lodash": "^4.17.21"
+  }
 }
