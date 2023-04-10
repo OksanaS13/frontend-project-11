@@ -3,7 +3,6 @@ env:
   es2021: true
 extends:
   - "airbnb-base"
-  - "plugin:jest/recommended"
 overrides: []
 parserOptions:
   ecmaVersion: latest
@@ -11,3 +10,4 @@ parserOptions:
 rules:
   no-console: 0
   import/extensions: 0
+  import/no-extraneous-dependencies: 0
