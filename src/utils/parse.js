@@ -1,6 +1,9 @@
 import _ from 'lodash';
 
-export default (xmlString) => {
+export default (contents) => {
+  const parser = new DOMParser();
+  const xmlString = parser.parseFromString(contents, 'text/xml');
+
   const title = xmlString.querySelector('title');
   const description = xmlString.querySelector('description');
 
