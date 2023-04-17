@@ -25,6 +25,29 @@ const getHtml = (url) => fetch(`https://allorigins.hexlet.app/get?disableCache=t
     throw new Error('Network response was not ok.');
   });
 
+const actualize = (rssLinks, watchedState) => {
+  if (rssLinks.length !== 0) {
+    const requests = rssLinks.map((request) => getHtml(request)
+      .then((data) => ({ status: 'succes', data: data.contents }))
+      .catch((err) => ({ status: 'error', data: err })));
+    const promise = Promise.all(requests);
+    promise.then((responses) => responses.forEach((response) => {
+      if (response.status === 'succes') {
+        const { data } = response;
+        const { posts } = parse(data);
+        const newPosts = posts.filter(({ postTitle }) => {
+          const addedPostTitles = watchedState.posts.map((post) => post.postTitle);
+          return !addedPostTitles.includes(postTitle);
+        });
+        if (newPosts.length !== 0) {
+          watchedState.posts.unshift(...newPosts);
+        }
+      }
+      setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
+    }));
+  }
+};
+
 export default () => {
   const i18nInstance = i18n.createInstance();
   i18nInstance.init({
@@ -68,15 +91,14 @@ export default () => {
         watchedState.form.error = data.errors.join('');
       })
       .then(({ contents }) => {
-        const parser = new DOMParser();
-        const xmlString = parser.parseFromString(contents, 'text/xml');
-        const rss = parse(xmlString);
+        const rss = parse(contents);
         if (!rss) {
           watchedState.form.error = i18nInstance.t('feedback.errors.noRss');
         }
         watchedState.feeds.push(rss.feed);
         watchedState.posts.unshift(...rss.posts);
         watchedState.rssLinks.push(url);
+        setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
       });
   });
 };
