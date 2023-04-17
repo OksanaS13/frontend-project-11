@@ -73,18 +73,14 @@ const render = (path, watchedState, elements, i18nInstance) => {
       break;
     }
     case 'feeds': {
-      if (watchedState.feeds.length === 1) {
-        elements.feeds.append(createBlock('Фиды'));
-      }
+      elements.feeds.replaceChildren(createBlock('Фиды'));
       const currentFeed = _.last(watchedState.feeds);
       const li = addNewFeed(currentFeed);
       elements.feeds.querySelector('ul').append(li);
       break;
     }
     case 'posts': {
-      if (watchedState.feeds.length === 1) {
-        elements.posts.append(createBlock('Посты'));
-      }
+      elements.posts.replaceChildren(createBlock('Посты'));
       const list = addNewPosts(watchedState.posts);
       elements.posts.querySelector('ul').replaceChildren(...list);
       break;
