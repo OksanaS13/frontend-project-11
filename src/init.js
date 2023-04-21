@@ -1,7 +1,9 @@
+/* eslint-disable no-param-reassign */
 import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18n from 'i18next';
+import _ from 'lodash';
 import render from './view.js';
 import ru from './locales/ru.js';
 import parse from './utils/parse.js';
@@ -34,13 +36,21 @@ const actualize = (rssLinks, watchedState) => {
     promise.then((responses) => responses.forEach((response) => {
       if (response.status === 'succes') {
         const { data } = response;
-        const { posts } = parse(data);
-        const newPosts = posts.filter(({ postTitle }) => {
+        const { posts, feed } = parse(data);
+        if (feed && posts) {
+          const [currentFeed] = watchedState.feeds.filter(({ title }) => feed.title === title);
+          const feedId = currentFeed.id;
           const addedPostTitles = watchedState.posts.map((post) => post.postTitle);
-          return !addedPostTitles.includes(postTitle);
-        });
-        if (newPosts.length !== 0) {
-          watchedState.posts.unshift(...newPosts);
+          const newPosts = posts.filter(({ postTitle }) => !addedPostTitles.includes(postTitle));
+          if (newPosts.length !== 0) {
+            newPosts.forEach((post) => {
+              post.feedId = feedId;
+              post.postId = _.uniqueId();
+            });
+            watchedState.posts.unshift(...newPosts);
+            watchedState.form.state = 'processed';
+            watchedState.form.state = 'filling';
+          }
         }
       }
       setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
@@ -58,47 +68,76 @@ export default () => {
     },
   });
 
-  // Model
   const initialState = {
     form: {
+      state: 'filling',
       error: null,
     },
     rssLinks: [],
     posts: [],
     feeds: [],
+    uiState: {
+      touchedPosts: [],
+    },
   };
 
   const elements = {
-    form: document.querySelector('.rss-form'),
+    form: {
+      container: document.querySelector('.rss-form'),
+      input: document.getElementById('url-input'),
+      button: document.querySelector('button[type=submit]'),
+    },
     feedback: document.querySelector('.feedback'),
     posts: document.querySelector('.posts'),
     feeds: document.querySelector('.feeds'),
+    modal: document.getElementById('modal'),
   };
 
-  // View
-  const watchedState = onChange(initialState, (path) => {
-    render(path, watchedState, elements, i18nInstance);
+  const watchedState = onChange(initialState, (path, value) => {
+    render(path, value, watchedState, elements, i18nInstance);
   });
 
-  // Control
-  elements.form.addEventListener('submit', (e) => {
+  elements.form.container.addEventListener('submit', (e) => {
     e.preventDefault();
+    watchedState.form.state = 'sending';
     const formData = new FormData(e.target);
     const url = formData.get('url').trim();
     validate(url, watchedState.rssLinks, i18nInstance)
       .then((validUrl) => getHtml(validUrl))
       .catch((data) => {
         watchedState.form.error = data.errors.join('');
+        watchedState.form.state = 'failed';
       })
       .then(({ contents }) => {
         const rss = parse(contents);
         if (!rss) {
           watchedState.form.error = i18nInstance.t('feedback.errors.noRss');
+          watchedState.form.state = 'failed';
+          return;
         }
+        const feedId = _.uniqueId();
+        rss.feed.id = feedId;
+        rss.posts.forEach((post) => {
+          post.feedId = feedId;
+          post.postId = _.uniqueId();
+        });
+
         watchedState.feeds.push(rss.feed);
         watchedState.posts.unshift(...rss.posts);
         watchedState.rssLinks.push(url);
+        watchedState.form.state = 'processed';
+        watchedState.form.state = 'filling';
         setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
       });
+  });
+
+  elements.modal.addEventListener('show.bs.modal', (e) => {
+    const button = e.relatedTarget;
+    const id = button.getAttribute('data-id');
+    const [currentPost] = watchedState.posts.filter(({ postId }) => postId === id);
+    watchedState.uiState.touchedPosts.push(currentPost);
+    watchedState.form.state = 'show description';
+    watchedState.form.state = 'touched post';
+    watchedState.form.state = 'filling';
   });
 };
