@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 export default (contents) => {
   const parser = new DOMParser();
   const xmlString = parser.parseFromString(contents, 'text/xml');
@@ -23,7 +21,6 @@ export default (contents) => {
       const postDescription = item.querySelector('description');
       const link = item.querySelector('link');
       return {
-        id: _.uniqueId(),
         postTitle: postTitle.textContent,
         postDescription: postDescription.textContent,
         link: link.textContent,
