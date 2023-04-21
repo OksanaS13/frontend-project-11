@@ -24,14 +24,14 @@ const validate = (url, addedUrls, i18nInstance) => {
 const getHtml = (url) => fetch(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(url)}`)
   .then((response) => {
     if (response.ok) return response.json();
-    throw new Error('Network response was not ok.');
+    throw new Error();
   });
 
 const actualize = (rssLinks, watchedState) => {
   if (rssLinks.length !== 0) {
     const requests = rssLinks.map((request) => getHtml(request)
       .then((data) => ({ status: 'succes', data: data.contents }))
-      .catch((err) => ({ status: 'error', data: err })));
+      .catch((err) => ({ status: 'error', err })));
     const promise = Promise.all(requests);
     promise.then((responses) => responses.forEach((response) => {
       if (response.status === 'succes') {
@@ -53,9 +53,9 @@ const actualize = (rssLinks, watchedState) => {
           }
         }
       }
-      setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
     }));
   }
+  setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
 };
 
 export default () => {
@@ -127,7 +127,10 @@ export default () => {
         watchedState.rssLinks.push(url);
         watchedState.form.state = 'processed';
         watchedState.form.state = 'filling';
-        setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
+      })
+      .catch(() => {
+        watchedState.form.error = i18nInstance.t('feedback.errors.networkError');
+        watchedState.form.state = 'failed';
       });
   });
 
@@ -140,4 +143,6 @@ export default () => {
     watchedState.form.state = 'touched post';
     watchedState.form.state = 'filling';
   });
+
+  setTimeout(actualize, 5000, watchedState.rssLinks, watchedState);
 };
