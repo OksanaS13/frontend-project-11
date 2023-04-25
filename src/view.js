@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 const createBlock = (type) => {
   const container = document.createElement('div');
   container.classList.add('card', 'border-0');
@@ -45,24 +43,32 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
   const itemTitle = document.createElement('a');
   const button = document.createElement('button');
 
-  item.append(itemTitle, button);
+  itemTitle.textContent = postTitle;
+  itemTitle.href = link;
+  itemTitle.setAttribute('data-id', postId);
+  itemTitle.setAttribute('target', '_blank');
+  itemTitle.setAttribute('rel', 'noopener noreferrer');
+
   if (touchedPostsId.includes(postId)) {
-    itemTitle.outerHTML = `<a class="fw-normal" href="${link}" data-id="${postId}" target="_blank" rel="noopener noreferrer">${postTitle}</a>`;
+    itemTitle.classList.add('fw-normal');
   } else {
-    itemTitle.outerHTML = `<a class="fw-bold" href="${link}" data-id="${postId}" target="_blank" rel="noopener noreferrer">${postTitle}</a>`;
+    itemTitle.classList.add('fw-bold');
   }
-  button.outerHTML = `<button type="button" class="btn btn-outline-primary btn-sm" data-id="${postId}" data-bs-toggle="modal" data-bs-target="#modal">Просмотр</button>`;
+
+  button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+  button.textContent = 'Просмотр';
+  button.setAttribute('type', 'button');
+  button.setAttribute('data-id', postId);
+  button.setAttribute('data-bs-toggle', 'modal');
+  button.setAttribute('data-bs-target', '#modal');
+
+  item.append(itemTitle, button);
 
   return item;
 });
 
-const render = (path, value, watchedState, elements, i18nInstance) => {
-  switch (value) {
-    case 'filling': {
-      elements.form.input.removeAttribute('readonly');
-      elements.form.button.removeAttribute('disabled');
-      break;
-    }
+const render = (change, watchedState, elements) => {
+  switch (change.value) {
     case 'sending': {
       elements.form.input.setAttribute('readonly', 'true');
       elements.form.button.setAttribute('disabled', '');
@@ -72,8 +78,8 @@ const render = (path, value, watchedState, elements, i18nInstance) => {
       elements.form.input.classList.add('is-invalid');
       elements.feedback.classList.add('text-danger');
       elements.feedback.classList.remove('text-success');
-      const { error } = watchedState.form;
-      const text = document.createTextNode(error);
+      const { feedback } = watchedState.form;
+      const text = document.createTextNode(feedback);
       elements.feedback.replaceChildren(text);
 
       elements.form.input.removeAttribute('readonly');
@@ -84,42 +90,48 @@ const render = (path, value, watchedState, elements, i18nInstance) => {
       elements.form.input.classList.remove('is-invalid');
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.add('text-success');
-      const text = document.createTextNode(i18nInstance.t('feedback.succes'));
+      const { feedback } = watchedState.form;
+      const text = document.createTextNode(feedback);
       elements.feedback.replaceChildren(text);
 
       elements.feeds.replaceChildren(createBlock('Фиды'));
       const feeds = watchedState.feeds.map(addNewFeed);
       elements.feeds.querySelector('ul').append(...feeds);
 
-      elements.posts.replaceChildren(createBlock('Посты'));
-      const list = addNewPosts(watchedState.posts, watchedState.uiState.touchedPosts);
-      elements.posts.querySelector('ul').replaceChildren(...list);
-
+      elements.form.input.removeAttribute('readonly');
+      elements.form.button.removeAttribute('disabled');
       elements.form.container.reset();
       break;
     }
-    case 'show description': {
-      // elements.modal.classList.add('show');
-      // elements.modal.removeAttribute('aria-hidden');
-      // elements.modal.setAttribute('aria-modal', 'true');
-      // elements.modal.setAttribute('style', 'display: block;');
+    default: {
+      break;
+    }
+  }
 
+  switch (change.path) {
+    case 'uiState.modalPostId': {
       const modalTitle = elements.modal.querySelector('.modal-title');
       const modalBody = elements.modal.querySelector('.modal-body');
       const modalLink = elements.modal.querySelector('.full-article');
 
-      const { postTitle, postDescription, link } = _.last(watchedState.uiState.touchedPosts);
+      const { modalPostId } = watchedState.uiState;
+
+      const {
+        postTitle, postDescription, link, postId,
+      } = watchedState.uiState.touchedPosts.find((post) => post.postId === modalPostId);
+      const currentPost = document.querySelector(`a[data-id="${postId}"]`);
+      currentPost.classList.remove('fw-bold');
+      currentPost.classList.add('fw-normal');
 
       modalTitle.textContent = postTitle;
       modalBody.textContent = postDescription;
       modalLink.href = link;
       break;
     }
-    case 'touched post': {
-      const { postId } = _.last(watchedState.uiState.touchedPosts);
-      const currentPost = document.querySelector(`a[data-id="${postId}"]`);
-      currentPost.classList.remove('fw-bold');
-      currentPost.classList.add('fw-normal');
+    case 'posts': {
+      elements.posts.replaceChildren(createBlock('Посты'));
+      const list = addNewPosts(watchedState.posts, watchedState.uiState.touchedPosts);
+      elements.posts.querySelector('ul').replaceChildren(...list);
       break;
     }
     default: {
