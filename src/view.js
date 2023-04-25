@@ -99,10 +99,10 @@ const render = (path, value, watchedState, elements, i18nInstance) => {
       break;
     }
     case 'show description': {
-      elements.modal.classList.add('show');
-      elements.modal.removeAttribute('aria-hidden');
-      elements.modal.setAttribute('aria-modal', 'true');
-      elements.modal.setAttribute('style', 'display: block;');
+      // elements.modal.classList.add('show');
+      // elements.modal.removeAttribute('aria-hidden');
+      // elements.modal.setAttribute('aria-modal', 'true');
+      // elements.modal.setAttribute('style', 'display: block;');
 
       const modalTitle = elements.modal.querySelector('.modal-title');
       const modalBody = elements.modal.querySelector('.modal-body');
