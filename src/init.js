@@ -7,9 +7,9 @@ import axios from 'axios';
 import _ from 'lodash';
 import render from './view.js';
 import ru from './locales/ru.js';
-import parse from './utils/parse.js';
+import parse from './parse.js';
 
-const validate = (url, urls, i18nInstance) => {
+const validate = (url, i18nInstance, urls = []) => {
   yup.setLocale({
     mixed: {
       notOneOf: () => i18nInstance.t('feedback.errors.existingRss'),
@@ -34,7 +34,8 @@ const getHtml = (link) => {
 const normalizeUrl = (url) => (url.endsWith('/') ? url.slice(0, -1) : url);
 
 const actualize = (watchedState, delay) => {
-  const requests = watchedState.rssLinks.map((request) => getHtml(request)
+  const rssLinks = watchedState.feeds.map((feed) => feed.url);
+  const requests = rssLinks.map((request) => getHtml(request)
     .then((data) => ({ status: 'succes', data: data.contents }))
     .catch((err) => ({ status: 'error', err })));
   const promise = Promise.all(requests);
@@ -45,17 +46,19 @@ const actualize = (watchedState, delay) => {
       if (feed && posts) {
         const currentFeed = watchedState.feeds.find(({ title }) => feed.title === title);
         const feedId = currentFeed.id;
-        const addedPostTitles = watchedState.posts.map((post) => post.postTitle);
-        const newPosts = posts.filter(({ postTitle }) => !addedPostTitles.includes(postTitle));
+        const addedPostTitles = watchedState.posts.map((post) => post.title);
+        const newPosts = posts.filter(({ title }) => !addedPostTitles.includes(title));
         if (newPosts.length !== 0) {
           const postsWithId = newPosts.map((post) => {
             post.feedId = feedId;
-            post.postId = _.uniqueId();
+            post.id = _.uniqueId();
             return post;
           });
           watchedState.posts.unshift(...postsWithId);
         }
       }
+    } else {
+      console.log(response.err);
     }
   }));
   setTimeout(actualize, delay, watchedState, delay);
@@ -73,10 +76,9 @@ export default () => {
 
   const initialState = {
     form: {
-      state: null,
+      state: 'filling',
       feedback: null,
     },
-    rssLinks: [],
     posts: [],
     feeds: [],
     uiState: {
@@ -106,30 +108,33 @@ export default () => {
     watchedState.form.state = 'sending';
     const formData = new FormData(e.target);
     const url = normalizeUrl(formData.get('url').trim());
-    validate(url, watchedState.rssLinks, i18nInstance)
+    const rssLinks = watchedState.feeds.map((feed) => feed.url);
+    validate(url, i18nInstance, rssLinks)
       .then((validUrl) => getHtml(validUrl))
       .catch((data) => {
         watchedState.form.feedback = data.errors.join('');
         watchedState.form.state = 'failed';
       })
       .then(({ contents }) => {
-        const rss = parse(contents);
-        if (!rss) {
-          watchedState.form.feedback = i18nInstance.t('feedback.errors.noRss');
+        let rss;
+        try {
+          rss = parse(contents);
+        } catch (err) {
+          watchedState.form.feedback = i18nInstance.t(`feedback.errors.${err.message}`);
           watchedState.form.state = 'failed';
-          return;
+          throw new Error(i18nInstance.t(`feedback.errors.${err.message}`));
         }
         const feedId = _.uniqueId();
         rss.feed.id = feedId;
+        rss.feed.url = url;
         const postsWithId = rss.posts.map((post) => {
           post.feedId = feedId;
-          post.postId = _.uniqueId();
+          post.id = _.uniqueId();
           return post;
         });
 
         watchedState.feeds.push(rss.feed);
         watchedState.posts.unshift(...postsWithId);
-        watchedState.rssLinks.push(url);
         watchedState.form.feedback = i18nInstance.t('feedback.succes');
         watchedState.form.state = 'processed';
       })
@@ -141,12 +146,12 @@ export default () => {
 
   elements.modal.addEventListener('show.bs.modal', (e) => {
     const button = e.relatedTarget;
-    const id = button.getAttribute('data-id');
-    const currentPost = watchedState.posts.find(({ postId }) => postId === id);
+    const buttonId = button.getAttribute('data-id');
+    const currentPost = watchedState.posts.find(({ id }) => id === buttonId);
     if (!watchedState.uiState.touchedPosts.includes(currentPost)) {
       watchedState.uiState.touchedPosts.push(currentPost);
     }
-    watchedState.uiState.modalPostId = id;
+    watchedState.uiState.modalPostId = buttonId;
   });
 
   const delay = 5000;
