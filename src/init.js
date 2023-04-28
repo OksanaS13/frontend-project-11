@@ -142,6 +142,8 @@ export default () => {
         watchedState.form.feedback = i18nInstance.t('feedback.errors.networkError');
         watchedState.form.state = 'failed';
       });
+
+    watchedState.form.state = 'filling';
   });
 
   elements.modal.addEventListener('show.bs.modal', (e) => {
