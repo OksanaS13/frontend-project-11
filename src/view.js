@@ -69,6 +69,11 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
 
 const render = (change, watchedState, elements) => {
   switch (change.value) {
+    case 'filling': {
+      elements.form.input.removeAttribute('readonly');
+      elements.form.button.removeAttribute('disabled');
+      break;
+    }
     case 'sending': {
       elements.form.input.setAttribute('readonly', 'true');
       elements.form.button.setAttribute('disabled', '');
@@ -81,9 +86,6 @@ const render = (change, watchedState, elements) => {
       const { feedback } = watchedState.form;
       const text = document.createTextNode(feedback);
       elements.feedback.replaceChildren(text);
-
-      elements.form.input.removeAttribute('readonly');
-      elements.form.button.removeAttribute('disabled');
       break;
     }
     case 'processed': {
@@ -98,8 +100,6 @@ const render = (change, watchedState, elements) => {
       const feeds = watchedState.feeds.map(addNewFeed);
       elements.feeds.querySelector('ul').append(...feeds);
 
-      elements.form.input.removeAttribute('readonly');
-      elements.form.button.removeAttribute('disabled');
       elements.form.container.reset();
       break;
     }
