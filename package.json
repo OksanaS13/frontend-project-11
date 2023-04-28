@@ -1,7 +1,7 @@
 {
   "name": "@hexlet/code",
   "version": "1.0.0",
-  "description": "[![Actions Status](https://github.com/OksanaS13/frontend-project-11/workflows/hexlet-check/badge.svg)](https://github.com/OksanaS13/frontend-project-11/actions)",
+  "description": "RSS Reader is a service for aggregating RSS feeds, with the help of which it is convenient to read various sources.",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
