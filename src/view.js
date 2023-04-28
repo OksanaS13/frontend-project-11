@@ -34,8 +34,8 @@ const addNewFeed = (feed) => {
 };
 
 const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
-  const { postTitle, link, postId } = post;
-  const touchedPostsId = touchedPosts.map((touchedPost) => touchedPost.postId);
+  const { title, link, id } = post;
+  const touchedPostsId = touchedPosts.map((touchedPost) => touchedPost.id);
 
   const item = document.createElement('li');
   item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -43,13 +43,13 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
   const itemTitle = document.createElement('a');
   const button = document.createElement('button');
 
-  itemTitle.textContent = postTitle;
+  itemTitle.textContent = title;
   itemTitle.href = link;
-  itemTitle.setAttribute('data-id', postId);
+  itemTitle.setAttribute('data-id', id);
   itemTitle.setAttribute('target', '_blank');
   itemTitle.setAttribute('rel', 'noopener noreferrer');
 
-  if (touchedPostsId.includes(postId)) {
+  if (touchedPostsId.includes(id)) {
     itemTitle.classList.add('fw-normal');
   } else {
     itemTitle.classList.add('fw-bold');
@@ -58,7 +58,7 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
   button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
   button.textContent = 'Просмотр';
   button.setAttribute('type', 'button');
-  button.setAttribute('data-id', postId);
+  button.setAttribute('data-id', id);
   button.setAttribute('data-bs-toggle', 'modal');
   button.setAttribute('data-bs-target', '#modal');
 
@@ -117,14 +117,14 @@ const render = (change, watchedState, elements) => {
       const { modalPostId } = watchedState.uiState;
 
       const {
-        postTitle, postDescription, link, postId,
-      } = watchedState.uiState.touchedPosts.find((post) => post.postId === modalPostId);
-      const currentPost = document.querySelector(`a[data-id="${postId}"]`);
+        title, description, link, id,
+      } = watchedState.uiState.touchedPosts.find((post) => post.id === modalPostId);
+      const currentPost = document.querySelector(`a[data-id="${id}"]`);
       currentPost.classList.remove('fw-bold');
       currentPost.classList.add('fw-normal');
 
-      modalTitle.textContent = postTitle;
-      modalBody.textContent = postDescription;
+      modalTitle.textContent = title;
+      modalBody.textContent = description;
       modalLink.href = link;
       break;
     }
