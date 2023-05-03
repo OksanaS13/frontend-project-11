@@ -5,6 +5,17 @@
 ### Description
 [RSS Reader](https://frontend-project-11-olive.vercel.app/) is a service for aggregating RSS feeds, with the help of which it is convenient to read various sources. It allows you to add an unlimited number of RSS feeds, updates them itself and adds new entries to the general feed.
 
+### System requirements
+
+- Mac or Linux
+- Node.js version 18 and later
+
+### Setup
+
+```bash
+make install
+```
+
 
 
 
