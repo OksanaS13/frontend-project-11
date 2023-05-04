@@ -26,10 +26,13 @@ const getUrl = (link) => {
 
   url.searchParams.set('disableCache', 'true');
   url.searchParams.set('url', link);
-  return url.toString();
+  return url;
 };
 
-const getHtml = (link) => axios.get(getUrl(link)).then((response) => response.data);
+const getHtml = (link) => {
+  const url = getUrl(link);
+  return axios.get(url.toString()).then((response) => response.data);
+};
 
 const normalizeUrl = (url) => (url.endsWith('/') ? url.slice(0, -1) : url);
 
