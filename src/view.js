@@ -33,7 +33,7 @@ const addNewFeed = (feed) => {
   return item;
 };
 
-const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
+const addNewPosts = (posts, touchedPosts, i18nInstance) => posts.map((post) => {
   const { title, link, id } = post;
   const touchedPostsId = touchedPosts.map((touchedPost) => touchedPost.id);
 
@@ -56,7 +56,7 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
   }
 
   button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-  button.textContent = 'Просмотр';
+  button.textContent = i18nInstance.t('buttons.viewPost');
   button.setAttribute('type', 'button');
   button.setAttribute('data-id', id);
   button.setAttribute('data-bs-toggle', 'modal');
@@ -67,7 +67,19 @@ const addNewPosts = (posts, touchedPosts) => posts.map((post) => {
   return item;
 });
 
-const render = (change, watchedState, elements) => {
+const render = (change, watchedState, i18nInstance) => {
+  const elements = {
+    form: {
+      container: document.querySelector('.rss-form'),
+      input: document.getElementById('url-input'),
+      button: document.querySelector('button[type=submit]'),
+    },
+    feedback: document.querySelector('.feedback'),
+    posts: document.querySelector('.posts'),
+    feeds: document.querySelector('.feeds'),
+    modal: document.getElementById('modal'),
+  };
+
   switch (change.value) {
     case 'filling': {
       elements.form.input.removeAttribute('readonly');
@@ -130,7 +142,7 @@ const render = (change, watchedState, elements) => {
     }
     case 'posts': {
       elements.posts.replaceChildren(createBlock('Посты'));
-      const list = addNewPosts(watchedState.posts, watchedState.uiState.touchedPosts);
+      const list = addNewPosts(watchedState.posts, watchedState.uiState.touchedPosts, i18nInstance);
       elements.posts.querySelector('ul').replaceChildren(...list);
       break;
     }
