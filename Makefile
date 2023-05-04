@@ -2,7 +2,7 @@ install:
 	npm ci
 
 develop:
-	NODE_ENV=development npx webpack serve
+	npx webpack serve
 
 lint:
 	npx eslint
