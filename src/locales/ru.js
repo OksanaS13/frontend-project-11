@@ -9,5 +9,8 @@ export default {
         networkError: 'Ошибка сети',
       },
     },
+    buttons: {
+      viewPost: 'Просмотр',
+    },
   },
 };
