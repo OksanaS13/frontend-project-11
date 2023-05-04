@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18n from 'i18next';
@@ -22,14 +21,15 @@ const validate = (url, i18nInstance, urls = []) => {
   return schema.validate(url);
 };
 
-const getHtml = (link) => {
+const getUrl = (link) => {
   const url = new URL('https://allorigins.hexlet.app/get?');
 
   url.searchParams.set('disableCache', 'true');
   url.searchParams.set('url', link);
-
-  return axios.get(url.toString()).then((response) => response.data);
+  return url.toString();
 };
+
+const getHtml = (link) => axios.get(getUrl(link)).then((response) => response.data);
 
 const normalizeUrl = (url) => (url.endsWith('/') ? url.slice(0, -1) : url);
 
@@ -87,23 +87,11 @@ export default () => {
     },
   };
 
-  const elements = {
-    form: {
-      container: document.querySelector('.rss-form'),
-      input: document.getElementById('url-input'),
-      button: document.querySelector('button[type=submit]'),
-    },
-    feedback: document.querySelector('.feedback'),
-    posts: document.querySelector('.posts'),
-    feeds: document.querySelector('.feeds'),
-    modal: document.getElementById('modal'),
-  };
-
   const watchedState = onChange(initialState, (path, value) => {
-    render({ path, value }, watchedState, elements, i18nInstance);
+    render({ path, value }, watchedState, i18nInstance);
   });
 
-  elements.form.container.addEventListener('submit', (e) => {
+  document.querySelector('.rss-form').addEventListener('submit', (e) => {
     e.preventDefault();
     watchedState.form.state = 'sending';
     const formData = new FormData(e.target);
@@ -119,10 +107,9 @@ export default () => {
         let rss;
         try {
           rss = parse(contents);
-        } catch (err) {
-          watchedState.form.feedback = i18nInstance.t(`feedback.errors.${err.message}`);
+        } catch {
+          watchedState.form.feedback = i18nInstance.t('feedback.errors.noRss');
           watchedState.form.state = 'failed';
-          throw new Error(i18nInstance.t(`feedback.errors.${err.message}`));
         }
         const feedId = _.uniqueId();
         rss.feed.id = feedId;
@@ -146,7 +133,7 @@ export default () => {
     watchedState.form.state = 'filling';
   });
 
-  elements.modal.addEventListener('show.bs.modal', (e) => {
+  document.getElementById('modal').addEventListener('show.bs.modal', (e) => {
     const button = e.relatedTarget;
     const buttonId = button.getAttribute('data-id');
     const currentPost = watchedState.posts.find(({ id }) => id === buttonId);
