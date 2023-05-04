@@ -4,7 +4,7 @@ export default (contents) => {
   const errorNode = xmlString.querySelector('parsererror');
 
   if (errorNode) {
-    throw new Error('noRss');
+    throw new Error(errorNode.textContent);
   } else {
     const title = xmlString.querySelector('title');
     const description = xmlString.querySelector('description');
