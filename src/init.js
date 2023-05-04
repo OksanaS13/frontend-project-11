@@ -131,9 +131,10 @@ export default () => {
       .catch(() => {
         watchedState.form.feedback = i18nInstance.t('feedback.errors.networkError');
         watchedState.form.state = 'failed';
+      })
+      .then(() => {
+        watchedState.form.state = 'filling';
       });
-
-    watchedState.form.state = 'filling';
   });
 
   document.getElementById('modal').addEventListener('show.bs.modal', (e) => {
