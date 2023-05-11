@@ -95,23 +95,22 @@ const render = (change, watchedState, i18nInstance) => {
       elements.form.input.classList.add('is-invalid');
       elements.feedback.classList.add('text-danger');
       elements.feedback.classList.remove('text-success');
-      const { feedback } = watchedState.form;
-      const text = document.createTextNode(feedback);
+
+      const mode = change.path.slice(0, -6);
+      const { error } = watchedState[mode];
+      const text = document.createTextNode(error);
       elements.feedback.replaceChildren(text);
       break;
     }
-    case 'processed': {
+    case 'uploaded': {
       elements.form.input.classList.remove('is-invalid');
       elements.feedback.classList.remove('text-danger');
       elements.feedback.classList.add('text-success');
-      const { feedback } = watchedState.form;
-      const text = document.createTextNode(feedback);
+      const text = document.createTextNode(i18nInstance.t('feedback.succes'));
       elements.feedback.replaceChildren(text);
-
-      elements.feeds.replaceChildren(createBlock('Фиды'));
-      const feeds = watchedState.feeds.map(addNewFeed);
-      elements.feeds.querySelector('ul').append(...feeds);
-
+      break;
+    }
+    case 'idle': {
       elements.form.container.reset();
       break;
     }
@@ -138,6 +137,12 @@ const render = (change, watchedState, i18nInstance) => {
       modalTitle.textContent = title;
       modalBody.textContent = description;
       modalLink.href = link;
+      break;
+    }
+    case 'feeds': {
+      elements.feeds.replaceChildren(createBlock('Фиды'));
+      const feeds = watchedState.feeds.map(addNewFeed);
+      elements.feeds.querySelector('ul').append(...feeds);
       break;
     }
     case 'posts': {
