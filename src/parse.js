@@ -1,10 +1,17 @@
+class ErrorRss extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ErrorRss';
+  }
+}
+
 export default (contents) => {
   const parser = new DOMParser();
   const xmlString = parser.parseFromString(contents, 'text/xml');
   const errorNode = xmlString.querySelector('parsererror');
 
   if (errorNode) {
-    throw new Error(errorNode.textContent);
+    throw new ErrorRss(errorNode.textContent);
   } else {
     const title = xmlString.querySelector('title');
     const description = xmlString.querySelector('description');
