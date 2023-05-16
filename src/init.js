@@ -34,8 +34,8 @@ const actualize = (watchedState, delay) => {
   const promise = Promise.allSettled(requests);
   promise.then((responses) => responses.forEach((response) => {
     if (response.status === 'fulfilled') {
-      const { value: data } = response;
-      const { posts, feed } = parse(data);
+      const { contents } = response.value;
+      const { posts, feed } = parse(contents);
       if (feed && posts) {
         const currentFeed = watchedState.feeds.find(({ title }) => feed.title === title);
         const feedId = currentFeed.id;
@@ -53,8 +53,8 @@ const actualize = (watchedState, delay) => {
     } else {
       console.log(response.reason);
     }
-  }));
-  setTimeout(actualize, delay, watchedState, delay);
+  }))
+    .then(setTimeout(actualize, delay, watchedState, delay));
 };
 
 export default () => {
@@ -107,24 +107,9 @@ export default () => {
     const rssLinks = watchedState.feeds.map((feed) => feed.url);
     validate(url, rssLinks)
       .then((validUrl) => getHtml(validUrl))
-      .catch((data) => {
-        watchedState.form.error = data.errors.join('');
-        watchedState.form.state = 'failed';
-        return { contents: 'no content' };
-      })
       .then(({ contents }) => {
-        if (contents === 'no content') {
-          return;
-        }
-        let rss;
-        try {
-          rss = parse(contents);
-        } catch {
-          console.log('noRss');
-          watchedState.form.error = i18nInstance.t('feedback.errors.noRss');
-          watchedState.form.state = 'failed';
-          return;
-        }
+        const rss = parse(contents);
+
         watchedState.loadingProcess.state = 'uploaded';
         const feedId = _.uniqueId();
         rss.feed.id = feedId;
@@ -138,13 +123,34 @@ export default () => {
         watchedState.feeds.push(rss.feed);
         watchedState.posts.unshift(...postsWithId);
       })
-      .catch(() => {
-        watchedState.loadingProcess.error = i18nInstance.t('feedback.errors.networkError');
-        watchedState.loadingProcess.state = 'failed';
+      .then(() => {
+        watchedState.loadingProcess.state = 'idle';
+      })
+      .catch((err) => {
+        const { name } = err;
+        switch (name) {
+          case 'AxiosError': {
+            watchedState.loadingProcess.error = i18nInstance.t('feedback.errors.networkError');
+            watchedState.loadingProcess.state = 'failed';
+            break;
+          }
+          case 'ErrorRss': {
+            watchedState.form.error = i18nInstance.t('feedback.errors.noRss');
+            watchedState.form.state = 'failed';
+            break;
+          }
+          case 'ValidationError': {
+            watchedState.form.error = err.message;
+            watchedState.form.state = 'failed';
+            break;
+          }
+          default: {
+            throw new Error(`Unknown error name ${name}`);
+          }
+        }
       })
       .then(() => {
         watchedState.form.state = 'filling';
-        watchedState.loadingProcess.state = 'idle';
       });
   });
 
