@@ -122,8 +122,6 @@ export default () => {
 
         watchedState.feeds.push(rss.feed);
         watchedState.posts.unshift(...postsWithId);
-      })
-      .then(() => {
         watchedState.loadingProcess.state = 'idle';
       })
       .catch((err) => {
